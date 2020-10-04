@@ -15,7 +15,7 @@ bar.sql
 
 Running `sqlembed -path=./queries -package=queries` will produce the following output:
 
-```
+```golang
 package queries
 
 const (
