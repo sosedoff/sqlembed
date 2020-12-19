@@ -68,7 +68,7 @@ func main() {
 		return nil
 	})
 
-	tpl, err := template.New("main").Parse(resultTemplate)
+	tpl, err := template.New("main").Parse(strings.TrimSpace(resultTemplate))
 	if err != nil {
 		fatal(err)
 	}
@@ -96,7 +96,7 @@ package {{ .packageName }}
 
 const (
 	{{ range .items }}
-	// {{ .File }}
+	// {{ .Name }} is imported from {{ .File }}
 	{{ .Name }} = {{ .Data }}
 	{{ end }}
 )
