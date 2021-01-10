@@ -1,4 +1,10 @@
-.PHONY: install example
+.PHONY: build install test example
+
+build:
+	go build
+
+test:
+	go test ./...
 
 install:
 	go install
