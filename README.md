@@ -61,6 +61,31 @@ $ sqlembed -path=./queries -package=queries > queries/queries.go
 The output file `queries/queries.go` is not very readable so it's a good idea to
 add this file into your `.gitignore`.
 
+### Go Embed mode
+
+Go 1.16+ [supports assets embedding](https://pkg.go.dev/embed) natively, which `sqlembed` also
+supports.
+
+To produce file with embeds, run:
+
+```bash
+$ sqlembed -path=./queries -package=queries -embed > queries/queries.go
+```
+
+Example output:
+
+```golang
+package queries
+
+var (
+  //go:embed queries/create_users.sql
+  CreateUsers string
+
+  //go:embed queries/create_users.sql
+  DeleteUsers string
+)
+```
+
 ## License
 
 MIT
