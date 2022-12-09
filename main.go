@@ -18,6 +18,8 @@ var (
 	path        string
 	packageName string
 	showVersion bool
+	goEmbed     bool
+	goEmbedDir  string
 )
 
 type queryItem struct {
@@ -30,6 +32,8 @@ func init() {
 	flag.StringVar(&path, "path", "", "Path to directory containing SQL files")
 	flag.StringVar(&packageName, "package", "queries", "Output package name")
 	flag.BoolVar(&showVersion, "v", false, "Show current version")
+	flag.BoolVar(&goEmbed, "embed", false, "Use go:embed directives")
+	flag.StringVar(&goEmbedDir, "embed-dir", "", "Relative directory for go:embed")
 	flag.Parse()
 }
 
@@ -59,6 +63,11 @@ func main() {
 			return err
 		}
 
+		// Go embed file path must be relative to the package directory
+		if goEmbedDir != "" {
+			path = filepath.Join(goEmbedDir, filepath.Base(info.Name()))
+		}
+
 		items = append(items, queryItem{
 			File: path,
 			Name: constName,
@@ -68,7 +77,12 @@ func main() {
 		return nil
 	})
 
-	tpl, err := template.New("main").Parse(strings.TrimSpace(resultTemplate))
+	targetTemplate := contentTemplate
+	if goEmbed {
+		targetTemplate = embedTemplate
+	}
+
+	tpl, err := template.New("main").Parse(targetTemplate)
 	if err != nil {
 		fatal(err)
 	}
@@ -91,14 +105,28 @@ func constantizeName(name string) string {
 }
 
 const (
-	resultTemplate = `
+	contentTemplate = `
 package {{ .packageName }}
-
 const (
-	{{ range .items }}
+{{- range .items }}
 	// {{ .Name }} is imported from {{ .File }}
 	{{ .Name }} = {{ .Data }}
-	{{ end }}
+{{ end -}}
 )
-	`
+`
+
+	embedTemplate = `
+package {{ .packageName }}
+
+import (
+	_ "embed"
+)
+
+var (
+{{- range .items }}
+	//go:embed {{ .File }}
+	{{ .Name }} string
+{{ end -}}
+)
+`
 )
